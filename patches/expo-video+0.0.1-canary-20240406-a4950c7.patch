@@ -1,0 +1,43 @@
+diff --git a/node_modules/expo-video/build/VideoView.web.js b/node_modules/expo-video/build/VideoView.web.js
+index 244810e..7a164cf 100644
+--- a/node_modules/expo-video/build/VideoView.web.js
++++ b/node_modules/expo-video/build/VideoView.web.js
+@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
+  * This audio context is used to mute all but one video when multiple video views are playing from one player simultaneously.
+  * Using audio context nodes allows muting videos without displaying the mute icon in the video player.
+  */
+-const audioContext = window && new window.AudioContext();
++const audioContext = typeof window != "undefined" && new window.AudioContext();
+ const zeroGainNode = audioContext && audioContext.createGain();
+ if (audioContext && zeroGainNode) {
+     zeroGainNode.gain.value = 0;
+@@ -109,6 +109,7 @@ class VideoPlayerWeb extends globalThis.expo.SharedObject {
+     }
+     play() {
+         this._mountedVideos.forEach((video) => {
++            audioContext.resume();
+             video.play();
+         });
+         this.playing = true;
+@@ -277,7 +278,7 @@ export const VideoView = forwardRef((props, ref) => {
+             if (newRef) {
+                 videoRef.current = newRef;
+             }
+-        }} src={getSourceUri(props.player?.src) ?? ''}/>);
++        }} src={getSourceUri(props.player?.src) ?? ''} onPlay={() => audioContext.resume()}/>);
+ });
+ export default VideoView;
+ //# sourceMappingURL=VideoView.web.js.map
+\ No newline at end of file
+diff --git a/node_modules/expo-video/ios/VideoView.swift b/node_modules/expo-video/ios/VideoView.swift
+index ea41d06..dca8d03 100644
+--- a/node_modules/expo-video/ios/VideoView.swift
++++ b/node_modules/expo-video/ios/VideoView.swift
+@@ -61,6 +61,7 @@ public final class VideoView: ExpoView, AVPlayerViewControllerDelegate {
+     playerViewController.updatesNowPlayingInfoCenter = false
+ 
+     addSubview(playerViewController.view)
++    playerViewController.beginAppearanceTransition(true, animated: true)
+   }
+ 
+   deinit {
